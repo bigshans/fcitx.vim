@@ -9,7 +9,6 @@ if &cp || exists("g:loaded_fcitx") || (!exists('$DISPLAY') && !exists('$WAYLAND_
   finish
 endif
 let s:keepcpo = &cpo
-let g:fcitx5_remote='fcitx5-remote'
 let g:disable_fcitx_toggle_temp = 0
 set cpo&vim
 
