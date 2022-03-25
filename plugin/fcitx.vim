@@ -9,11 +9,16 @@ if &cp || exists("g:loaded_fcitx") || (!exists('$DISPLAY') && !exists('$WAYLAND_
   finish
 endif
 let s:keepcpo = &cpo
+let g:fcitx5_remote='fcitx5-remote'
+let g:disable_fcitx_toggle_temp = 0
 set cpo&vim
 
 " If g:fcitx5_remote is set (to the path to `fcitx5-remove`), use it to toggle IME state.
 if exists("g:fcitx5_remote")
   function Fcitx2en()
+    if g:disable_fcitx_toggle_temp == 1
+      return
+    endif
     let inputstatus = trim(system(g:fcitx5_remote))
     if inputstatus == '2'
       let b:inputtoggle = 1
@@ -21,6 +26,10 @@ if exists("g:fcitx5_remote")
     endif
   endfunction
   function Fcitx2zh()
+    if g:disable_fcitx_toggle_temp == 1
+      let g:disable_fcitx_toggle_temp = 0
+      return
+    endif
     try
       if b:inputtoggle == 1
         call system(g:fcitx5_remote . ' -o')

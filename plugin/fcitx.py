@@ -40,12 +40,17 @@ def may_reconnect(func):
 
 @may_reconnect
 def fcitx2en():
+  if vim.eval('g:disable_fcitx_toggle_temp') == '1':
+      return
   if Fcitx.status():
     vim.command('let b:inputtoggle = 1')
     Fcitx.deactivate()
 
 @may_reconnect
 def fcitx2zh():
+  if vim.eval('g:disable_fcitx_toggle_temp') == '1':
+      vim.command('let g:disable_fcitx_toggle_temp = 0')
+      return
   if vim.eval('exists("b:inputtoggle")') == '1':
     if vim.eval('b:inputtoggle') == '1':
       Fcitx.activate()
