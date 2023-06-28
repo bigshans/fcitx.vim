@@ -12,8 +12,7 @@ let s:keepcpo = &cpo
 let g:disable_fcitx_toggle_temp = 0
 set cpo&vim
 
-" If g:fcitx5_remote is set (to the path to `fcitx5-remove`), use it to toggle IME state.
-if exists("g:fcitx5_remote")
+function s:setup_cmd()
   function Fcitx2en()
     if g:disable_fcitx_toggle_temp == 1
       return
@@ -40,6 +39,11 @@ if exists("g:fcitx5_remote")
   endfunction
 
   let g:loaded_fcitx = 1
+endfunction
+
+" If g:fcitx5_remote is set (to the path to `fcitx5-remove`), use it to toggle IME state.
+if exists("g:fcitx5_remote")
+  call s:setup_cmd()
 
 " Otherwise, if python3 is available, use python and dbus to toggle IME state.
 elseif has('python3')
@@ -52,8 +56,16 @@ elseif has('python3')
       function Fcitx2zh()
         py3 fcitx2zh()
       endfunction
+      function FcitxCurrentIM()
+        return py3eval('fcitx_current_im()')
+      endfunction
 
       let g:loaded_fcitx = 1
+    endif
+  catch
+    if executable('fcitx5-remote')
+      let g:fcitx5_remote = 'fcitx5-remote'
+      call s:setup_cmd()
     endif
   endtry
 endif

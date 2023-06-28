@@ -3,11 +3,12 @@ import functools
 
 import dbus
 
-class FcitxComm():
+class FcitxComm:
   def __init__(self):
-    bus = dbus.SessionBus()
+    self.bus = bus = dbus.SessionBus()
     obj = bus.get_object('org.fcitx.Fcitx5', '/controller')
     self.fcitx = dbus.Interface(obj, dbus_interface='org.fcitx.Fcitx.Controller1')
+    self._rime = None
 
   def status(self):
     return self.fcitx.State() == 2
@@ -18,7 +19,40 @@ class FcitxComm():
   def deactivate(self):
     self.fcitx.Deactivate()
 
+  def current(self):
+    im = self.fcitx.CurrentInputMethod()
+    if im == 'rime':
+      return self._get_rime().GetCurrentSchema()
+    else:
+      return im
+
+  def _get_rime(self):
+    if self._rime is None:
+      obj = self.bus.get_object('org.fcitx.Fcitx5', '/rime')
+      self._rime = dbus.Interface(obj, dbus_interface='org.fcitx.Fcitx.Rime1')
+    return self._rime
+
+class FcitxRimeComm:
+  def __init__(self):
+    bus = dbus.SessionBus()
+    obj = bus.get_object('org.fcitx.Fcitx5', '/rime')
+    self.fcitx = dbus.Interface(obj, dbus_interface='org.fcitx.Fcitx.Rime1')
+
+  def status(self):
+    return self.fcitx.IsAsciiMode()
+
+  def activate(self):
+    self.fcitx.SetAsciiMode(False)
+
+  def deactivate(self):
+    self.fcitx.SetAsciiMode(True)
+
+  def current(self):
+    return self.fcitx.GetCurrentSchema()
+
 try:
+  if vim.eval('get(g:, "fcitx5_rime")') == '1':
+    FcitxComm = FcitxRimeComm
   Fcitx = FcitxComm()
   fcitx_loaded = True
 except dbus.exceptions.DBusException as e:
@@ -57,3 +91,7 @@ def fcitx2zh():
       vim.command('let b:inputtoggle = 0')
   else:
     vim.command('let b:inputtoggle = 0')
+
+@may_reconnect
+def fcitx_current_im():
+  return Fcitx.current()
